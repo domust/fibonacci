@@ -1,0 +1,12 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: fibonacci
+build:
+  artifacts:
+    - image: registry.orb.local/server
+      ko: {}
+  local:
+    push: false
+deploy:
+  kubectl: {}
