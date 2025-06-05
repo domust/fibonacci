@@ -3,16 +3,24 @@
   "packages": [
     "skaffold@2.15.0",
     "go@1.24.3",
-    "gopls@0.18.1"
+    "gopls@0.18.1",
+    "buf@1.52.1",
+    "protobuf@30.2",
+    "protoc-gen-go@1.36.6",
+    "protoc-gen-go-grpc@1.5.1",
+    "jq@1.7.1"
   ],
   "shell": {
     "init_hook": [
-      "echo 'Welcome to devbox!' > /dev/null"
+      "echo 'The following scripts are available for convenience:'",
+      "jq '.shell.scripts | keys' devbox.json"
     ],
     "scripts": {
-      "test": [
-        "echo \"Error: no test specified\" && exit 1"
-      ]
+      "curl": "buf curl --schema . --protocol grpc --http2-prior-knowledge $@",
+      "dev": "skaffold dev",
+      "format": "buf format -w",
+      "generate": "buf generate",
+      "lint": "buf lint"
     }
   }
 }

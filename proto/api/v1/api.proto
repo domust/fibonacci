@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package api.v1;
+
+option go_package = "github.com/domust/fibonacci/api";
+
+service Fibonacci {
+  rpc GenerateSequence(GenerateSequenceRequest) returns (GenerateSequenceResponse) {}
+}
+
+message GenerateSequenceRequest {}
+
+message GenerateSequenceResponse {}
