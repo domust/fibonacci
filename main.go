@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
+	"os/signal"
+	"syscall"
 
 	"google.golang.org/grpc"
 
@@ -20,6 +23,14 @@ func main() {
 	srv := grpc.NewServer()
 	api.RegisterFibonacciServer(srv, &internal.Server{})
 
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	go func() {
+		<-ctx.Done()
+		cancel()
+		srv.GracefulStop()
+	}()
+
+	log.Println("starting grpc server")
 	if err := srv.Serve(lis); err != nil {
 		log.Fatal(err)
 	}
