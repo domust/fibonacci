@@ -8,6 +8,8 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/domust/fibonacci/api"
 	"github.com/domust/fibonacci/internal"
@@ -20,18 +22,21 @@ func main() {
 	}
 	log.Printf("listening on %s\n", lis.Addr().String())
 
-	srv := grpc.NewServer()
-	api.RegisterFibonacciServer(srv, &internal.Server{})
+	gs := grpc.NewServer()
+	hs := health.NewServer()
+	api.RegisterFibonacciServer(gs, &internal.Server{})
+	grpc_health_v1.RegisterHealthServer(gs, hs)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	go func() {
 		<-ctx.Done()
 		cancel()
-		srv.GracefulStop()
+		hs.SetServingStatus("", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+		gs.GracefulStop()
 	}()
 
 	log.Println("starting grpc server")
-	if err := srv.Serve(lis); err != nil {
+	if err := gs.Serve(lis); err != nil {
 		log.Fatal(err)
 	}
 }

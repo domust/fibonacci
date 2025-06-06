@@ -20,6 +20,7 @@
       "dev": "skaffold dev",
       "format": "buf format -w",
       "generate": "buf generate",
+      "health": "buf curl --schema buf.build/grpc/grpc --protocol grpc --http2-prior-knowledge $@/grpc.health.v1.Health/Check",
       "lint": "buf lint"
     }
   }

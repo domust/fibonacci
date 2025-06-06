@@ -43,4 +43,9 @@ The following command can used to call the Fibonacci service's API:
 devbox run curl http://api.fibonacci.svc.cluster.local:8080/api.v1.Fibonacci/GenerateSequence
 ```
 
-P.S. it requires giving terminal emulator permissions to access local network devices or else it fails with no route to host.
+The following command can be used to check Fibonacci service's health:
+```shell
+devbox run health http://api.fibonacci.svc.cluster.local:8080
+```
+
+P.S. the above commands require giving terminal emulator permissions to access local network devices or else they fail with no route to host.
