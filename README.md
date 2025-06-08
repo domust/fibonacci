@@ -8,6 +8,7 @@ The project uses:
 - [devbox](https://www.jetify.com/docs/devbox/installing_devbox/) for managing dependencies and task execution.
 - [orbstack](https://orbstack.dev/download) for running Docker/Kubernetes locally with automatic port forwarding, domain name access and remote debugging.
 - [skaffold](https://skaffold.dev/docs/install/) for developing on Kubernetes with hot reload and minimal image builds.
+- [hyperdx](https://github.com/hyperdxio/hyperdx/blob/main/LOCAL.md) for testing open telemetry instrumentation during development.
 
 As long as devbox is used, only the Orbstack (or an equivalent) has to be installed manually. Everything else is fully managed by
 devbox, including the Go toolchain and protobuf tooling.
@@ -21,6 +22,13 @@ Commands that require dependencies managed by devbox can be executed without ent
 ```shell
 devbox run [command]
 ```
+
+Starting the project in hot-reload loop can be accomplished with the following command:
+```shell
+devbox run dev
+```
+
+While the hot reload loop is running, hyperdx UI can be accessed by navigating to http://k8s.orb.local:8080.
 
 Dependencies managed by devbox can be made accessible to the IDE of choice by installing a direnv plugin.
 

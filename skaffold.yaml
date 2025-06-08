@@ -10,3 +10,8 @@ build:
     push: false
 deploy:
   kubectl: {}
+manifests:
+  rawYaml:
+    - k8s/namespace.yaml
+    - k8s/observability.yaml
+    - k8s/server.yaml
