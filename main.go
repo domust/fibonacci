@@ -22,12 +22,12 @@ func main() {
 	}
 	log.Printf("listening on %s\n", lis.Addr().String())
 
-	gs := grpc.NewServer()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	gs := grpc.NewServer(internal.WithTracing(ctx))
 	hs := health.NewServer()
 	api.RegisterFibonacciServer(gs, &internal.Server{})
 	grpc_health_v1.RegisterHealthServer(gs, hs)
 
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	go func() {
 		<-ctx.Done()
 		cancel()

@@ -28,6 +28,9 @@ spec:
       containers:
         - name: server
           image: registry.orb.local/server
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel.fibonacci.svc.cluster.local:4317
           ports:
             - containerPort: 8080
           livenessProbe:
