@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net"
 	"os/signal"
 	"syscall"
@@ -16,18 +17,13 @@ import (
 )
 
 func main() {
-	lis, err := net.Listen("tcp4", ":8080")
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("listening on %s\n", lis.Addr().String())
-
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	telemetry, err := internal.NewTelemetry(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	slog.SetDefault(telemetry.Logger())
 	metrics, err := internal.NewMetrics(telemetry.Meter())
 	if err != nil {
 		log.Fatal(err)
@@ -45,7 +41,12 @@ func main() {
 		gs.GracefulStop()
 	}()
 
-	log.Println("starting grpc server")
+	lis, err := net.Listen("tcp4", ":8080")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("starting grpc server on %s\n", lis.Addr().String())
 	if err := gs.Serve(lis); err != nil {
 		log.Fatal(err)
 	}

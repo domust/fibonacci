@@ -10,7 +10,14 @@ require (
 	google.golang.org/protobuf v1.36.6
 )
 
-require go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.36.0
+require (
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.12.2
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.36.0
+	go.opentelemetry.io/otel/log v0.12.2
+	go.opentelemetry.io/otel/sdk/log v0.12.2
+)
+
+require go.opentelemetry.io/contrib/bridges/otelslog v0.11.0
 
 require (
 	github.com/cenkalti/backoff/v5 v5.0.2 // indirect

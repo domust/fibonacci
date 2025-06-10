@@ -2,12 +2,17 @@ package internal
 
 import (
 	"context"
+	"log/slog"
 	"net"
 
+	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -18,11 +23,14 @@ import (
 	"google.golang.org/grpc/stats/opentelemetry"
 )
 
+const scope = "github.com/domust/fibonacci"
+
 // Telemetry encapsulates dependencies required to produce telemetry signals.
 type Telemetry struct {
 	traces     trace.TracerProvider
 	propagator propagation.TextMapPropagator
 	metrics    metric.MeterProvider
+	logs       log.LoggerProvider
 }
 
 // ServerOption is required to start a span when the server's Recv method is called.
@@ -38,15 +46,21 @@ func (t *Telemetry) ServerOption() grpc.ServerOption {
 // UnaryInterceptor is required to create a method specific span from the parent (Recv) span.
 func (t *Telemetry) UnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-		ctx, span := t.traces.Tracer("github.com/domust/fibonacci").Start(ctx, info.FullMethod)
+		ctx, span := t.traces.Tracer(scope).Start(ctx, info.FullMethod)
 		defer span.End()
 
 		return handler(ctx, req)
 	}
 }
 
+// Meter returns a new meter for dependency injection.
 func (t *Telemetry) Meter() metric.Meter {
-	return t.metrics.Meter("github.com/domust/fibonacci")
+	return t.metrics.Meter(scope)
+}
+
+// Logger returns standard library's structured logger configured with telemetry.
+func (t *Telemetry) Logger() *slog.Logger {
+	return otelslog.NewLogger(scope, otelslog.WithLoggerProvider(t.logs))
 }
 
 // NewTelemetry is used to provision dependencies required for exporting telemetry signals.
@@ -63,6 +77,11 @@ func NewTelemetry(ctx context.Context) (*Telemetry, error) {
 		return nil, err
 	}
 
+	logs, err := otlploggrpc.New(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	rsc, err := newResource(ctx)
 	if err != nil {
 		return nil, err
@@ -72,6 +91,7 @@ func NewTelemetry(ctx context.Context) (*Telemetry, error) {
 		traces:     newTracerProvider(traces, rsc),
 		propagator: propagation.TraceContext{},
 		metrics:    newMeterProvider(metrics, rsc),
+		logs:       newLoggerProvider(logs, rsc),
 	}, nil
 }
 
@@ -121,6 +141,15 @@ func newMeterProvider(exp sdkmetric.Exporter, rsc *resource.Resource) *sdkmetric
 		sdkmetric.WithResource(rsc),
 		sdkmetric.WithReader(
 			sdkmetric.NewPeriodicReader(exp),
+		),
+	)
+}
+
+func newLoggerProvider(exp sdklog.Exporter, rsc *resource.Resource) *sdklog.LoggerProvider {
+	return sdklog.NewLoggerProvider(
+		sdklog.WithResource(rsc),
+		sdklog.WithProcessor(
+			sdklog.NewBatchProcessor(exp),
 		),
 	)
 }
