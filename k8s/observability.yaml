@@ -14,14 +14,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: otel
+  name: telemetry
   namespace: fibonacci
 spec:
   ports:
     - port: 4317
-      name: otel-grpc
+      name: otlp-grpc
     - port: 4318
-      name: otel-http
+      name: otlp-http
   type: ClusterIP
   selector:
     app: collector

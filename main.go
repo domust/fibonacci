@@ -23,7 +23,12 @@ func main() {
 	log.Printf("listening on %s\n", lis.Addr().String())
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
-	gs := grpc.NewServer(internal.WithTracing(ctx))
+	telemetry, err := internal.NewTelemetry(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gs := grpc.NewServer(telemetry.ServerOption(), grpc.UnaryInterceptor(telemetry.UnaryInterceptor()))
 	hs := health.NewServer()
 	api.RegisterFibonacciServer(gs, &internal.Server{})
 	grpc_health_v1.RegisterHealthServer(gs, hs)

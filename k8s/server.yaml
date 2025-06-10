@@ -29,8 +29,22 @@ spec:
         - name: server
           image: registry.orb.local/server
           env:
+            - name: NODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: http://otel.fibonacci.svc.cluster.local:4317
+              value: http://telemetry.fibonacci.svc.cluster.local:4317
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.node.name=$(NODE),k8s.namespace.name=$(NAMESPACE),k8s.pod.name=$(POD)"
           ports:
             - containerPort: 8080
           livenessProbe:
