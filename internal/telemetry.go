@@ -4,8 +4,11 @@ import (
 	"context"
 	"net"
 
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
@@ -17,15 +20,16 @@ import (
 
 // Telemetry encapsulates dependencies required to produce telemetry signals.
 type Telemetry struct {
-	provider   trace.TracerProvider
+	traces     trace.TracerProvider
 	propagator propagation.TextMapPropagator
+	metrics    metric.MeterProvider
 }
 
 // ServerOption is required to start a span when the server's Recv method is called.
 func (t *Telemetry) ServerOption() grpc.ServerOption {
 	return opentelemetry.ServerOption(opentelemetry.Options{
 		TraceOptions: tracing.TraceOptions{
-			TracerProvider:    t.provider,
+			TracerProvider:    t.traces,
 			TextMapPropagator: t.propagator,
 		},
 	})
@@ -34,18 +38,27 @@ func (t *Telemetry) ServerOption() grpc.ServerOption {
 // UnaryInterceptor is required to create a method specific span from the parent (Recv) span.
 func (t *Telemetry) UnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-		ctx, span := t.provider.Tracer("github.com/domust/fibonacci").Start(ctx, info.FullMethod)
+		ctx, span := t.traces.Tracer("github.com/domust/fibonacci").Start(ctx, info.FullMethod)
 		defer span.End()
 
 		return handler(ctx, req)
 	}
 }
 
+func (t *Telemetry) Meter() metric.Meter {
+	return t.metrics.Meter("github.com/domust/fibonacci")
+}
+
 // NewTelemetry is used to provision dependencies required for exporting telemetry signals.
 func NewTelemetry(ctx context.Context) (*Telemetry, error) {
-	exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithDialOption(grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
+	traces, err := otlptracegrpc.New(ctx, otlptracegrpc.WithDialOption(grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
 		return (&net.Dialer{}).DialContext(ctx, "tcp4", addr)
 	})))
+	if err != nil {
+		return nil, err
+	}
+
+	metrics, err := otlpmetricgrpc.New(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -55,14 +68,27 @@ func NewTelemetry(ctx context.Context) (*Telemetry, error) {
 		return nil, err
 	}
 
-	provider, err := newTracerProvider(exporter, rsc)
+	return &Telemetry{
+		traces:     newTracerProvider(traces, rsc),
+		propagator: propagation.TraceContext{},
+		metrics:    newMeterProvider(metrics, rsc),
+	}, nil
+}
+
+// Metrics encapsulates all metrics fox export.
+type Metrics struct {
+	counter metric.Int64Counter
+}
+
+// NewMetrics creates metrics from a given meter.
+func NewMetrics(meter metric.Meter) (*Metrics, error) {
+	counter, err := meter.Int64Counter("fibonacci.requests.count")
 	if err != nil {
 		return nil, err
 	}
 
-	return &Telemetry{
-		provider:   provider,
-		propagator: propagation.TraceContext{},
+	return &Metrics{
+		counter: counter,
 	}, nil
 }
 
@@ -83,9 +109,18 @@ func newResource(ctx context.Context) (*resource.Resource, error) {
 	return resource.Merge(resource.Default(), rsc)
 }
 
-func newTracerProvider(exp sdktrace.SpanExporter, rsc *resource.Resource) (*sdktrace.TracerProvider, error) {
+func newTracerProvider(exp sdktrace.SpanExporter, rsc *resource.Resource) *sdktrace.TracerProvider {
 	return sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(rsc),
-	), nil
+		sdktrace.WithBatcher(exp),
+	)
+}
+
+func newMeterProvider(exp sdkmetric.Exporter, rsc *resource.Resource) *sdkmetric.MeterProvider {
+	return sdkmetric.NewMeterProvider(
+		sdkmetric.WithResource(rsc),
+		sdkmetric.WithReader(
+			sdkmetric.NewPeriodicReader(exp),
+		),
+	)
 }

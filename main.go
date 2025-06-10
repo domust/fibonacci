@@ -28,9 +28,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	metrics, err := internal.NewMetrics(telemetry.Meter())
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	gs := grpc.NewServer(telemetry.ServerOption(), grpc.UnaryInterceptor(telemetry.UnaryInterceptor()))
 	hs := health.NewServer()
-	api.RegisterFibonacciServer(gs, &internal.Server{})
+	api.RegisterFibonacciServer(gs, internal.NewServer(metrics))
 	grpc_health_v1.RegisterHealthServer(gs, hs)
 
 	go func() {
