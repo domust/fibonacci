@@ -9,4 +9,5 @@ breaking:
 modules:
   - path: proto
 deps:
+  - buf.build/bufbuild/protovalidate:v0.12.0
   - buf.build/googleapis/googleapis

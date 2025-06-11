@@ -4,6 +4,7 @@ package api.v1;
 
 option go_package = "github.com/domust/fibonacci/api";
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 
 service Fibonacci {
@@ -14,6 +15,10 @@ service Fibonacci {
   }
 }
 
-message GenerateSequenceRequest {}
+message GenerateSequenceRequest {
+    int32 length = 1 [(buf.validate.field).int32.gt = 0];
+}
 
-message GenerateSequenceResponse {}
+message GenerateSequenceResponse {
+    repeated int32 sequence = 1;
+}

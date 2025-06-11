@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"buf.build/go/protovalidate"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,22 +18,29 @@ import (
 
 	"github.com/domust/fibonacci/api"
 	"github.com/domust/fibonacci/internal"
+	rpc "github.com/domust/fibonacci/internal/grpc"
+	"github.com/domust/fibonacci/internal/telemetry"
 )
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
-	telemetry, err := internal.NewTelemetry(ctx)
+	tel, err := telemetry.NewTelemetry(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	slog.SetDefault(telemetry.Logger()) // comment out in order to debug startup failures locally
-	metrics, err := internal.NewMetrics(telemetry.Meter())
+	slog.SetDefault(tel.Logger()) // comment out in order to debug startup failures locally
+	metrics, err := telemetry.NewMetrics(tel.Meter())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	gs := grpc.NewServer(telemetry.ServerOption(), grpc.UnaryInterceptor(telemetry.UnaryInterceptor()))
+	validator, err := protovalidate.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gs := rpc.NewServer(tel, validator)
 	hs := health.NewServer()
 	api.RegisterFibonacciServer(gs, internal.NewServer(metrics))
 	grpc_health_v1.RegisterHealthServer(gs, hs)

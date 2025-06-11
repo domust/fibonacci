@@ -1,4 +1,5 @@
-package internal
+// Package telemetry implements sending of telemetry signals, such as traces, metrics, and logs.
+package telemetry
 
 import (
 	"context"

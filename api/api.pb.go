@@ -7,6 +7,7 @@
 package api
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -24,6 +25,7 @@ const (
 
 type GenerateSequenceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Length        int32                  `protobuf:"varint,1,opt,name=length,proto3" json:"length,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -58,8 +60,16 @@ func (*GenerateSequenceRequest) Descriptor() ([]byte, []int) {
 	return file_api_v1_api_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *GenerateSequenceRequest) GetLength() int32 {
+	if x != nil {
+		return x.Length
+	}
+	return 0
+}
+
 type GenerateSequenceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Sequence      []int32                `protobuf:"varint,1,rep,packed,name=sequence,proto3" json:"sequence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -94,13 +104,22 @@ func (*GenerateSequenceResponse) Descriptor() ([]byte, []int) {
 	return file_api_v1_api_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *GenerateSequenceResponse) GetSequence() []int32 {
+	if x != nil {
+		return x.Sequence
+	}
+	return nil
+}
+
 var File_api_v1_api_proto protoreflect.FileDescriptor
 
 const file_api_v1_api_proto_rawDesc = "" +
 	"\n" +
-	"\x10api/v1/api.proto\x12\x06api.v1\x1a\x1cgoogle/api/annotations.proto\"\x19\n" +
-	"\x17GenerateSequenceRequest\"\x1a\n" +
-	"\x18GenerateSequenceResponse2|\n" +
+	"\x10api/v1/api.proto\x12\x06api.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\":\n" +
+	"\x17GenerateSequenceRequest\x12\x1f\n" +
+	"\x06length\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00R\x06length\"6\n" +
+	"\x18GenerateSequenceResponse\x12\x1a\n" +
+	"\bsequence\x18\x01 \x03(\x05R\bsequence2|\n" +
 	"\tFibonacci\x12o\n" +
 	"\x10GenerateSequence\x12\x1f.api.v1.GenerateSequenceRequest\x1a .api.v1.GenerateSequenceResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/generateB!Z\x1fgithub.com/domust/fibonacci/apib\x06proto3"
 
