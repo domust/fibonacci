@@ -16,9 +16,12 @@ service Fibonacci {
 }
 
 message GenerateSequenceRequest {
-    int32 length = 1 [(buf.validate.field).int32.gt = 0];
+    uint32 length = 1 [
+        (buf.validate.field).uint32.gt = 0,
+        (buf.validate.field).uint32.lt = 95 // prevents production of sequences with overflowed uint64s
+    ];
 }
 
 message GenerateSequenceResponse {
-    repeated int32 sequence = 1;
+    repeated uint64 sequence = 1;
 }

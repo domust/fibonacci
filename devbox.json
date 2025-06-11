@@ -20,7 +20,7 @@
       "go install tool"
     ],
     "scripts": {
-      "curl": "buf curl --schema . --protocol grpc --http2-prior-knowledge $@",
+      "curl": "buf curl --schema . --protocol grpc --http2-prior-knowledge \"$@\"",
       "dev": "skaffold dev",
       "format": "buf format -w",
       "generate": "buf generate",

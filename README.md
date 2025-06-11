@@ -40,24 +40,24 @@ Orbstack handles [port-forwarding](https://docs.orbstack.dev/architecture#networ
 
 It's enough to just navigate to the following url:
 ```shell
-http://api.fibonacci.svc.cluster.local:8081/api/v1/generate
+http://api.fibonacci.svc.cluster.local:8081/api/v1/generate?length=32
 ```
 
 ### In Terminal
 
-The following command can used to call the Fibonacci service's gRPC API:
+The following command can be used to call the Fibonacci service's REST API:
 ```shell
-devbox run curl http://api.fibonacci.svc.cluster.local:8080/api.v1.Fibonacci/GenerateSequence
+curl "http://api.fibonacci.svc.cluster.local:8081/api/v1/generate?length=32"
 ```
 
-The following command can be used to call the Fibonacci service's HTTP API:
+P.S. the following commands require giving terminal emulator permissions to access local network devices or else they fail with no route to host.
+
+The following command can used to call the Fibonacci service's gRPC API:
 ```shell
-curl http://api.fibonacci.svc.cluster.local:8081/api/v1/generate
+devbox run curl --data '{"length": 32}' http://api.fibonacci.svc.cluster.local:8080/api.v1.Fibonacci/GenerateSequence
 ```
 
 The following command can be used to check Fibonacci service's health:
 ```shell
 devbox run health http://api.fibonacci.svc.cluster.local:8080
 ```
-
-P.S. the above commands require giving terminal emulator permissions to access local network devices or else they fail with no route to host.

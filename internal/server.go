@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"iter"
 
 	"github.com/domust/fibonacci/api"
 	"github.com/domust/fibonacci/internal/telemetry"
@@ -26,5 +27,27 @@ func (s *Server) GenerateSequence(ctx context.Context, req *api.GenerateSequence
 	// TODO: reenable later
 	//s.metrics.counter.Add(ctx, 1)
 
-	return &api.GenerateSequenceResponse{}, nil
+	seq := make([]uint64, 0, req.GetLength())
+	for num := range fibonacci(req.GetLength()) {
+		seq = append(seq, num)
+	}
+
+	return &api.GenerateSequenceResponse{Sequence: seq}, nil
+}
+
+func fibonacci(length uint32) iter.Seq[uint64] {
+	return func(yield func(uint64) bool) {
+		var a, b uint64
+
+		for i := range uint64(length) {
+			if i <= 1 {
+				a += i
+			}
+			a, b = b, a+b
+
+			if !yield(b) {
+				return
+			}
+		}
+	}
 }
