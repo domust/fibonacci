@@ -2,26 +2,24 @@ syntax = "proto3";
 
 package api.v1;
 
-option go_package = "github.com/domust/fibonacci/api";
-
 import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 
+option go_package = "github.com/domust/fibonacci/api";
+
 service Fibonacci {
   rpc GenerateSequence(GenerateSequenceRequest) returns (GenerateSequenceResponse) {
-      option (google.api.http) = {
-          get: "/api/v1/generate"
-      };
+    option (google.api.http) = {get: "/api/v1/generate"};
   }
 }
 
 message GenerateSequenceRequest {
-    uint32 length = 1 [
-        (buf.validate.field).uint32.gt = 0,
-        (buf.validate.field).uint32.lt = 95 // prevents production of sequences with overflowed uint64s
-    ];
+  uint32 length = 1 [
+    (buf.validate.field).uint32.gt = 0,
+    (buf.validate.field).uint32.lt = 95 // prevents production of sequences with overflowed uint64s
+  ];
 }
 
 message GenerateSequenceResponse {
-    repeated uint64 sequence = 1;
+  repeated uint64 sequence = 1;
 }

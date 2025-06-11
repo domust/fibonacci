@@ -24,8 +24,7 @@ func NewServer(metrics *telemetry.Metrics) *Server {
 
 // GenerateSequence is part of the [api.FibonacciServer] interface.
 func (s *Server) GenerateSequence(ctx context.Context, req *api.GenerateSequenceRequest) (*api.GenerateSequenceResponse, error) {
-	// TODO: reenable later
-	//s.metrics.counter.Add(ctx, 1)
+	s.metrics.Inc(ctx)
 
 	seq := make([]uint64, 0, req.GetLength())
 	for num := range fibonacci(req.GetLength()) {

@@ -3,6 +3,7 @@ package telemetry
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net"
 
@@ -70,17 +71,17 @@ func NewTelemetry(ctx context.Context) (*Telemetry, error) {
 		return (&net.Dialer{}).DialContext(ctx, "tcp4", addr)
 	})))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("trace exporter: %w", err)
 	}
 
 	metrics, err := otlpmetricgrpc.New(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("metric exporter: %w", err)
 	}
 
 	logs, err := otlploggrpc.New(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("log exporter: %w", err)
 	}
 
 	rsc, err := newResource(ctx)
@@ -101,11 +102,19 @@ type Metrics struct {
 	counter metric.Int64Counter
 }
 
+// Inc adds to the API request counter.
+func (m *Metrics) Inc(ctx context.Context) {
+	if m == nil {
+		return
+	}
+	m.counter.Add(ctx, 1)
+}
+
 // NewMetrics creates metrics from a given meter.
 func NewMetrics(meter metric.Meter) (*Metrics, error) {
 	counter, err := meter.Int64Counter("fibonacci.requests.count")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("counter: %w", err)
 	}
 
 	return &Metrics{
@@ -124,7 +133,7 @@ func newResource(ctx context.Context) (*resource.Resource, error) {
 		),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("resource: %w", err)
 	}
 
 	return resource.Merge(resource.Default(), rsc)
