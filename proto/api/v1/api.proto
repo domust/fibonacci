@@ -4,8 +4,14 @@ package api.v1;
 
 option go_package = "github.com/domust/fibonacci/api";
 
+import "google/api/annotations.proto";
+
 service Fibonacci {
-  rpc GenerateSequence(GenerateSequenceRequest) returns (GenerateSequenceResponse) {}
+  rpc GenerateSequence(GenerateSequenceRequest) returns (GenerateSequenceResponse) {
+      option (google.api.http) = {
+          get: "/api/v1/generate"
+      };
+  }
 }
 
 message GenerateSequenceRequest {}

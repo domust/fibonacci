@@ -5,10 +5,13 @@ import (
 	"log"
 	"log/slog"
 	"net"
+	"net/http"
 	"os/signal"
 	"syscall"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
@@ -23,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	slog.SetDefault(telemetry.Logger())
+	slog.SetDefault(telemetry.Logger()) // comment out in order to debug startup failures locally
 	metrics, err := internal.NewMetrics(telemetry.Meter())
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +50,21 @@ func main() {
 	}
 
 	log.Printf("starting grpc server on %s\n", lis.Addr().String())
-	if err := gs.Serve(lis); err != nil {
+	go func() {
+		if err := gs.Serve(lis); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	proxy := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	err = api.RegisterFibonacciHandlerFromEndpoint(ctx, proxy, "0.0.0.0:8080", opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("starting grpc proxy on 0.0.0.0:8081")
+	if err := http.ListenAndServe(":8081", proxy); err != nil {
 		log.Fatal(err)
 	}
 }

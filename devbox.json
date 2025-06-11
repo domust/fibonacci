@@ -10,10 +10,14 @@
     "protoc-gen-go-grpc@1.5.1",
     "jq@1.7.1"
   ],
+  "env": {
+    "PATH": "$HOME/go/bin:$PATH"
+  },
   "shell": {
     "init_hook": [
       "echo 'The following scripts are available for convenience:'",
-      "jq '.shell.scripts | keys' devbox.json"
+      "jq '.shell.scripts | keys' devbox.json",
+      "go install tool"
     ],
     "scripts": {
       "curl": "buf curl --schema . --protocol grpc --http2-prior-knowledge $@",

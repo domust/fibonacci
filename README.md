@@ -40,15 +40,19 @@ Orbstack handles [port-forwarding](https://docs.orbstack.dev/architecture#networ
 
 It's enough to just navigate to the following url:
 ```shell
-http://api.fibonacci.svc.cluster.local:8080/api.v1.Fibonacci/GenerateSequence
+http://api.fibonacci.svc.cluster.local:8081/api/v1/generate
 ```
-but keep in mind that since this is a gRPC endpoint, the browser will fail to parse the response.
 
 ### In Terminal
 
-The following command can used to call the Fibonacci service's API:
+The following command can used to call the Fibonacci service's gRPC API:
 ```shell
 devbox run curl http://api.fibonacci.svc.cluster.local:8080/api.v1.Fibonacci/GenerateSequence
+```
+
+The following command can be used to call the Fibonacci service's HTTP API:
+```shell
+curl http://api.fibonacci.svc.cluster.local:8081/api/v1/generate
 ```
 
 The following command can be used to check Fibonacci service's health:

@@ -7,6 +7,7 @@
 package api
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -97,11 +98,11 @@ var File_api_v1_api_proto protoreflect.FileDescriptor
 
 const file_api_v1_api_proto_rawDesc = "" +
 	"\n" +
-	"\x10api/v1/api.proto\x12\x06api.v1\"\x19\n" +
+	"\x10api/v1/api.proto\x12\x06api.v1\x1a\x1cgoogle/api/annotations.proto\"\x19\n" +
 	"\x17GenerateSequenceRequest\"\x1a\n" +
-	"\x18GenerateSequenceResponse2d\n" +
-	"\tFibonacci\x12W\n" +
-	"\x10GenerateSequence\x12\x1f.api.v1.GenerateSequenceRequest\x1a .api.v1.GenerateSequenceResponse\"\x00B!Z\x1fgithub.com/domust/fibonacci/apib\x06proto3"
+	"\x18GenerateSequenceResponse2|\n" +
+	"\tFibonacci\x12o\n" +
+	"\x10GenerateSequence\x12\x1f.api.v1.GenerateSequenceRequest\x1a .api.v1.GenerateSequenceResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/generateB!Z\x1fgithub.com/domust/fibonacci/apib\x06proto3"
 
 var (
 	file_api_v1_api_proto_rawDescOnce sync.Once
